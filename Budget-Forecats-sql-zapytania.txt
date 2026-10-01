@@ -1,0 +1,110 @@
+1.Budget vs Forecast vs Actual - podsumowanie
+select
+sum(cast(replace(BudgetUSD,',','.') as double)) as Total_Budget,
+sum(cast(replace(ForecastUSD,',','.') as double)) as Total_Forecast,
+sum(cast(replace(ActualUSD,',','.') as double)) as Total_Actual
+from "Budget-Forecast-sql.csv";
+
+2.Budget vs Actual według kwartału
+select
+  Quarter,
+sum(cast(replace(BudgetUSD,',','.') as double)) as Total_Budget,
+sum(cast(replace(ActualUSD,',','.') as double)) as Total_Actual,
+sum(cast(replace(ActualUSD,',','.') as double)) 
+  - sum(cast(replace(BudgetUSD,',','.') as double)) as Variance
+from "Budget-Forecast-sql.csv"
+group by Quarter
+order by Quarter;
+
+3.Budget vs Actual według działu
+select
+  dept,
+sum(cast(replace(BudgetUSD,',','.') as double)) as Budget,
+sum(cast(replace(ActualUSD,',','.') as double)) as Actual,
+sum(cast(replace(ActualUSD,',','.') as double)) 
+  - sum(cast(replace(BudgetUSD,',','.') as double)) as Variance
+from "Budget-Forecast-sql.csv"
+group by dept
+order by Variance desc;
+
+4.Variance % według działu
+select
+  dept,
+  round(
+  (
+  sum(cast(replace(ActualUSD,',','.') as double))
+- sum(cast(replace(BudgetUSD,',','.') as double))
+  )
+ / sum(cast(replace(BudgetUSD,',','.') as double)) * 100,
+  2
+  ) as Variance_Percent
+from "Budget-Forecast-sql.csv"
+group by dept
+order by Variance_Percent desc;
+
+5.Above/Below Budget
+select
+  dept,
+ case
+  when sum(cast(replace(ActualUSD,',','.') as double))
+> sum(cast(replace(BudgetUSD,',','.') as double))
+then 'Above Budget'
+ when sum(cast(replace(ActualUSD,',','.') as double))
+< sum(cast(replace(BudgetUSD,',','.') as double))
+then 'Below Budget'
+  else 'On Budget'
+  end as Budget_Status
+ from "Budget-Forecast-sql.csv"
+group by dept
+order by dept;
+
+6. Forecastvs Actual według kwartału
+select
+Quarter,
+sum(cast(replace(ForecastUSD,',','.') as double)) as Forecast,
+sum(cast(replace(ActualUSD,',','.') as double)) as Actual,
+sum(cast(replace(ActualUSD,',','.') as double))
+- sum(cast(replace(ForecastUSD,',','.') as double)) as Variance
+ from "Budget-Forecast-sql.csv"
+group by Quarter
+order by Quarter;
+
+7.Forecast vs Actual według działu
+select
+Dept,
+sum(cast(replace(ForecastUSD,',','.') as double)) as Forecast,
+sum(cast(replace(ActualUSD,',','.') as double)) as Actual,
+sum(cast(replace(ActualUSD,',','.') as double))
+- sum(cast(replace(ForecastUSD,',','.') as double)) as Variance
+ from "Budget-Forecast-sql.csv"
+group by Dept
+order by Variance desc;
+
+8.Ranking działów według Variance
+select
+Dept,
+sum(cast(replace(ActualUSD,',','.') as double))
+- sum(cast(replace(BudgetUSD,',','.') as double)) as Variance,
+rank() over (
+  order by
+ sum(cast(replace(ActualUSD,',','.') as double))
+- sum(cast(replace(BudgetUSD,',','.') as double)) desc
+  ) as Variance_Rank
+ from "Budget-Forecast-sql.csv"
+group by Dept
+order by Variance_Rank;
+
+9.Budget vs Forecast vs Actual według działu
+select
+Dept,
+sum(cast(replace(BudgetUSD,',','.') as double)) as Budget,
+sum(cast(replace(ForecastUSD,',','.') as double)) as Forecast,
+sum(cast(replace(ActualUSD,',','.') as double)) as Actual,
+sum(cast(replace(ActualUSD,',','.') as double)) 
+- sum(cast(replace(BudgetUSD,',','.') as double)) as Budget_Variance,  
+sum(cast(replace(ActualUSD,',','.') as double))
+- sum(cast(replace(ForecastUSD,',','.') as double)) as Forecast_Variance,  
+from "Budget-Forecast-sql.csv"
+group by Dept
+order by Dept;
+
